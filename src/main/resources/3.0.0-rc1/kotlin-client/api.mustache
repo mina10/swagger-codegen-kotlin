@@ -6,7 +6,7 @@ import retrofit2.http.*
 import io.reactivex.*
 
 {{#imports}}import {{import}}
-{{/imports}}
+{{/imports~}}
 
 {{#operations}}
 interface {{classname}} {
@@ -14,28 +14,26 @@ interface {{classname}} {
     /**
      * {{summary}}
      * {{notes}}
-{{#allParams}}
-     * @param {{paramName}}{{#description}} {{description}}{{/description}}{{^required}}{{#defaultValue}} default to {{.}}{{/defaultValue}}{{/required}}
+     *{{#allParams}}
+     * @param {{paramName}}{{#description}} {{description}}{{/description~}}{{^required}}{{#defaultValue}} default to {{.}}{{/defaultValue~}}{{/required~}}
 {{/allParams}}
      * @return {{>returnRx2Type}}{{#returnType}}&lt;{{.}}&gt;{{/returnType}}
-     */
-    {{#formParams}}
-    {{#-first}}
-    {{#isMultipart}}@Multipart{{/isMultipart}}{{^isMultipart}}@FormUrlEncoded{{/isMultipart}}
-    {{/-first}}
-    {{/formParams}}
+     */{{#formParams}}
+    {{#@first}}
+    {{#is ../../this 'multipart'}}@Multipart{{/is}}{{#isNot ../../this 'multipart'}}@FormUrlEncoded{{/isNot}}
+    {{/@first}}
+    {{/formParams~}}
     {{^formParams}}
     {{#prioritizedContentTypes}}
-    {{#-first}}
+    {{#@first}}
     @Headers(arrayOf("Content-Type:{{mediaType}}"))
-    {{/-first}}
-    {{/prioritizedContentTypes}}
-    {{/formParams}}
+    {{/@first}}
+    {{/prioritizedContentTypes~}}
+    {{/formParams~}}
     @{{httpMethod}}("{{{path}}}")
     fun {{operationId}}({{^allParams}}){{/allParams}}{{#allParams}}
-            {{>params}}{{#hasMore}},{{/hasMore}}{{^hasMore}}){{/hasMore}}{{/allParams}}
+            {{>params}}{{#has this 'more'}},{{/has~}}{{#hasNot this 'more'}}){{/hasNot~}}{{/allParams~}}
             : {{>returnRx2Type}}{{#returnType}}<{{.}}>{{/returnType}}
-
     {{/operation}}
 }
 {{/operations}}
