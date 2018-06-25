@@ -4,6 +4,7 @@ import io.swagger.codegen.*
 import io.swagger.codegen.CodegenParameter
 import io.swagger.codegen.languages.kotlin.KotlinClientCodegen
 import io.swagger.v3.oas.models.media.Schema
+import io.swagger.codegen.languages.helpers.ExtensionHelper.getBooleanValue
 
 class KotlinCodegen : KotlinClientCodegen() {
     override fun getTag() = CodegenType.CLIENT
@@ -77,6 +78,13 @@ class KotlinCodegen : KotlinClientCodegen() {
         (objs["operations"] as? Map<String, Any>)?.let {
             (it["operation"] as? List<CodegenOperation>)?.forEach {
                 it.path = it.path.removePrefix("/")
+                // Remove headers
+                it.allParams = it.allParams.filterNot{ it.isHeaderPram() }.reversed()
+                // hasMore
+                it.allParams.forEach{
+                   it.getVendorExtensions().put(CodegenConstants.HAS_MORE_EXT_NAME, true)
+                }
+                it.allParams.takeIf { it.isNotEmpty() }?.takeLast(1)?.get(0)?.getVendorExtensions()?.put(CodegenConstants.HAS_MORE_EXT_NAME, false)
             }
         }
         return objs
@@ -86,4 +94,6 @@ class KotlinCodegen : KotlinClientCodegen() {
         super.processOpts()
         supportingFiles.clear()
     }
+
+    private fun CodegenParameter.isHeaderPram() = getBooleanValue(this, CodegenConstants.IS_HEADER_PARAM_EXT_NAME)
 }
