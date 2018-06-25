@@ -1,0 +1,6 @@
+{
+  "invokerPackage": "com.example.domain",
+  "modelPackage": "com.example.domain.model",
+  "apiPackage": "com.example.domain.apiclient",
+  "hideGenerationTimestamp": true
+}

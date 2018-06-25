@@ -1,0 +1,7 @@
+{{#is this 'array-model'}}typealias {{classname}} = List<{{arrayModelType}}>{{/is}}{{#isNot this 'array-model'}}{{#hasNot this 'vars'}}class {{classname}}{{/hasNot}}{{/isNot}}{{#has this 'vars'}}data class {{classname}}({{#vars}}
+        /**{{#description}}
+         * {{{.}}}{{/description}}{{#minimum}}
+         * minimum: {{.}}{{/minimum}}{{#maximum}}
+         * maximum: {{.}}{{/maximum}}
+         **/
+        @SerializedName("{{baseName}}") val {{name}}: {{>datatypeWithEnum}}{{#has this 'more'}},{{/has}}{{#hasNot this 'more'}}){{/hasNot}}{{/vars}}{{/has}}

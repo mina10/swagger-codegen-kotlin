@@ -1,68 +1,53 @@
 package com.teamlab.smartphone.codegen
 
 import io.swagger.codegen.*
-import io.swagger.codegen.languages.JavaClientCodegen
-import io.swagger.models.Model
+import io.swagger.codegen.CodegenParameter
+import io.swagger.codegen.languages.kotlin.KotlinClientCodegen
+import io.swagger.v3.oas.models.media.Schema
+import io.swagger.codegen.languages.helpers.ExtensionHelper.getBooleanValue
 
-class KotlinCodegen : JavaClientCodegen(), CodegenConfig {
+class KotlinCodegen : KotlinClientCodegen() {
     override fun getTag() = CodegenType.CLIENT
     override fun getName() = "kotlin"
     override fun getHelp() = "Generate a Kotlin client."
-    override fun toApiName(name: String?) = "Api"
+    override fun getTemplateVersion() = "3.0.0-rc1"
 
-    init {
-        supportsInheritance = false
-        templateDir = "kotlin"
-        embeddedTemplateDir = "kotlin"
-        modelTemplateFiles["model.mustache"] = ".kt"
-        apiTemplateFiles["api.mustache"] = ".kt"
-        apiTestTemplateFiles.clear()
-        modelDocTemplateFiles.clear()
-        apiDocTemplateFiles.clear()
-        // https://github.com/JetBrains/kotlin/blob/master/core/descriptors/src/org/jetbrains/kotlin/renderer/KeywordStringsGenerated.java
-        (reservedWords as MutableSet) += setOf(
-                "package",
-                "as",
-                "typealias",
-                "class",
-                "this",
-                "super",
-                "val",
-                "var",
-                "fun",
-                "for",
-                "null",
-                "true",
-                "false",
-                "is",
-                "in",
-                "throw",
-                "return",
-                "break",
-                "continue",
-                "object",
-                "if",
-                "try",
-                "else",
-                "while",
-                "do",
-                "when",
-                "interface",
-                "typeof")
-        (defaultIncludes as MutableSet) += setOf(
-                "integer",
-                "array",
-                "string",
-                "List",
-                "Map")
-        (languageSpecificPrimitives as MutableSet) += setOf(
-                "Boolean",
-                "Double",
-                "Float",
-                "Long",
-                "Int",
+    init{
+       apiTestTemplateFiles.clear()
+       modelTestTemplateFiles.clear()
+       modelDocTemplateFiles.clear()
+       apiDocTemplateFiles.clear()
+       templateDir = "src/main/resources/3.0.0-rc1/kotlin-client"
+       
+       (defaultIncludes as MutableSet) += setOf(
+                "Byte",
                 "Short",
-                "Byte")
+                "Int",
+                "Long",
+                "Float",
+                "Double",
+                "Boolean",
+                "Char",
+                "Array",
+                "List",
+                "Set",
+                "Map"
+        )
+        (languageSpecificPrimitives as MutableSet) += setOf(
+                "Any",
+                "Byte",
+                "Short",
+                "Int",
+                "Long",
+                "Float",
+                "Double",
+                "Boolean",
+                "Char",
+                "String",
+                "Array",
+                "List",
+                "Map",
+                "Set")
         (typeMapping as MutableMap) += mapOf(
                 "integer" to "Int",
                 "long" to "Long",
@@ -78,18 +63,10 @@ class KotlinCodegen : JavaClientCodegen(), CodegenConfig {
                 "array" to "List",
                 "map" to "Map",
                 "uuid" to "UUID")
-        (importMapping as MutableMap) += mapOf(
-                "Date" to "java.util.Date",
-                "UUID" to "java.util.UUID")
     }
 
-    override fun processOpts() {
-        super.processOpts()
-        supportingFiles.clear()
-    }
-
-    override fun fromModel(name: String, model: Model, allDefinitions: MutableMap<String, Model>): CodegenModel {
-        return super.fromModel(name, model, allDefinitions).apply {
+    override fun fromModel(name: String, schema: Schema<Any>, allDefinitions: MutableMap<String, Schema<Any>>): CodegenModel {
+        return super.fromModel(name, schema, allDefinitions).apply {
             imports.remove("ApiModelProperty")
             imports.remove("ApiModel")
         }
@@ -101,10 +78,22 @@ class KotlinCodegen : JavaClientCodegen(), CodegenConfig {
         (objs["operations"] as? Map<String, Any>)?.let {
             (it["operation"] as? List<CodegenOperation>)?.forEach {
                 it.path = it.path.removePrefix("/")
+                // Remove headers
+                it.allParams = it.allParams.filterNot{ it.isHeaderPram() }.reversed()
+                // hasMore
+                it.allParams.forEach{
+                   it.getVendorExtensions().put(CodegenConstants.HAS_MORE_EXT_NAME, true)
+                }
+                it.allParams.takeIf { it.isNotEmpty() }?.takeLast(1)?.get(0)?.getVendorExtensions()?.put(CodegenConstants.HAS_MORE_EXT_NAME, false)
             }
         }
         return objs
     }
-}
 
-fun main(vararg args: String) = SwaggerCodegen.main(args)
+    override fun processOpts() {
+        super.processOpts()
+        supportingFiles.clear()
+    }
+
+    private fun CodegenParameter.isHeaderPram() = getBooleanValue(this, CodegenConstants.IS_HEADER_PARAM_EXT_NAME)
+}

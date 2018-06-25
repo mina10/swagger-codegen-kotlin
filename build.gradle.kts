@@ -27,7 +27,7 @@ repositories {
 
 dependencies {
     compile(kotlin("stdlib-jre8"))
-    compile("io.swagger:swagger-codegen-cli:2.2.2")
+    compile("io.swagger:swagger-codegen-cli:3.0.0-rc1")
 }
 
 tasks {
